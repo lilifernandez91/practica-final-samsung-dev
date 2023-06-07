@@ -1,0 +1,12 @@
+body {
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(to right, #2988a8, #87ceeb);
+}
+
+.section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}

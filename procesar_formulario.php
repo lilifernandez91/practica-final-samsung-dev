@@ -1,80 +1,80 @@
 <?php
 if ($_POST) {
 
+    //si el usuario ha introducido datos, se guardan en variables
+    $name = $_POST['name'];
+    $firstLastName = $_POST['last-name-one'];
+    $secondLastName = $_POST['last-name-two'];
+    $email = $_POST['email'];
+    $login = $_POST['login'];
+    $password = $_POST['password'];
+
     //servidor,acceso,contraseña y nombre de la base de datos
     $servername = "localhost";
     $username = "root";
-    $password = "";
-    $dbname = "practica_laboratorio";
+    $passwordDb = "";
+    $dbname = "laboratorio";
 
-    //Crear conexión a la base de datos
-    $conn = new mysqli($servername, $username, $password, $dbname);
+    try {
+        //Crear conexión a la base de datos
+        $conn = new mysqli($servername, $username, $passwordDb, $dbname);
 
-    //Chequear la conexion
-    if ($conn->connect_error) {
-        die("Conexión fallida: " . $conn->connect_error);
-    }
+        //Chequear la conexion
+        if ($conn->connect_error) {
+            die("Conexión fallida: " . $conn->connect_error);
+        }
 
-    //Obtener los datos del formulario y limpiarlos
-    $nombre = cleanInput($_POST['nombre']);
-    $primerapellido = cleanInput($_POST['primerapellido']);
-    $segundoapellido = cleanInput($_POST['segundoapellido']);
-    $email = cleanInput($_POST['email']);
-    $contraseña = cleanInput($_POST['contraseña']);
+        //Validar correo electrónico
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo "Por favor, introduzca un correo electrónico válido";
 
-    //Validar que los campos no estén vacíos
-    if (empty($nombre) || empty($primerapellido) || empty($segundoapellido) || empty($email) || empty($contraseña)) {
-        echo "Por favor, rellene todos los campos";
-        exit;
-    }
+            // link a la página de registro
+            echo "<a href='/practica-final/html/formulario.html' style='color: blue; font-size: 20px; margin-left:8px'>Volver al formulario</a>";
+            exit;
+        }
 
-    //Validar correo electrónico
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "Por favor, introduzca un correo electrónico válido";
-        exit;
-    }
+        //Validar contraseña que tenga entre 4 y 8
+        if (strlen($password) < 4 || strlen($password) > 8) {
+            echo "La contraseña debe tener entre 4 y 8 caracteres";
 
-    //Verificar que el correo electrónico no esté registrado en la base de datos
-    $sql = "SELECT * FROM registro WHERE email = '$email'";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        echo "El correo electrónico ya está registrado";
-        exit;
-    }
+            // link a la página de registro
+            echo "<a href='/practica-final/html/formulario.html' style='color: blue; font-size: 20px; margin-left:8px'>Volver al formulario</a>";
+            exit;
+        }
 
-    //Validar contraseña
-    if (strlen($contraseña) <= 4 || strlen($contraseña) >= 8) {
-        echo "La contraseña debe tener entre 4 y 8 caracteres";
-        exit;
-    }
+        //Verificar que el correo electrónico no esté registrado en la base de datos
+        $sql = $conn->prepare("SELECT * FROM registro WHERE email = ?");
+        $sql->bind_param("s", $email);
+        $sql->execute();
+        $result = $sql->get_result();
+        if ($result->fetch_assoc()) {
+            echo "El correo electrónico ya está registrado";
+            $sql->close();
+            // link a la página de inicio
+            echo "<a href='/practica-final/html/inicio.html' style='color: blue; font-size: 20px; margin-left:8px'>Volver a la página de inicio</a>";
+            exit;
+        }
 
-    //Crear una consulta a la base de datos y guardar en una variable
-    $sql = "INSERT INTO registro (nombre, primerapellido, segundoapellido, email, contraseña)
-                VALUES('$nombre', '$primerapellido', '$segundoapellido', '$email', '$contraseña')";
+        //Encriptar la contraseña
+        $password = password_hash($password, PASSWORD_DEFAULT);
 
-    //Consulta a la base de datos para obtener los datos de los usuarios
-    $sql = "SELECT * FROM registro";
-    $result = $conn->query($sql);
+        //Crear una consulta a la base de datos y guardar en una variable
+        $sql = "INSERT INTO registro (nombre, primer_apellido, segundo_apellido, email, login, password) 
+            VALUES ('$name', '$firstLastName', '$secondLastName', '$email', '$login', '$password')";
 
-    //Mensaje confirmando creación de registro exitosa, sino que se repita el proceso
-    if ($conn->query($sql) === TRUE) {
-        echo "Registro completado con éxito";
-        echo '<br>';
-        echo '<button onclick="consultarUsuarios()">Consulta</button>';
-    } else {
-        echo "Error al registrar los datos: " . $sql . "<br>" . $conn->error;
-    }
+        //Mensaje confirmando creación de registro exitosa, sino que se repita el proceso
+        if ($conn->query($sql) === TRUE) {
+            header("Location: /practica-final/html/registro.html");
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+        }
 
-    //Cerrar la conexión a la base de datos
-    $conn->close();
+        //Cerrar la conexión a la base de datos
+        $conn->close();
 
-    //Función para limpiar los datos introducidos por el usuario
-    function cleanInput($data)
-    {
-        $data = trim($data);
-        $data = stripslashes($data);
-        $data = htmlspecialchars($data);
-        return $data;
+    } catch (mysqli_sql_exception $e) {
+        //Si no se ha podido conectar a la base de datos, mostrar mensaje de error
+        echo "Error de conexión a la base de datos " . $e->getMessage();
     }
 }
 ?>

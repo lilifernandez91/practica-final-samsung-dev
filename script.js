@@ -1,7 +1,7 @@
-const buttonLogin = document.getElementById('login');
+const buttonSend = document.getElementById('send');
 
-const validateFields = (fullName, lastNameOne, lastNameTwo, email, password) => {
-    if (fullName === '' || lastNameOne === '' || lastNameTwo === '' || email === '' || password === '') {
+const validateFields = (fullName, lastNameOne, lastNameTwo, email, login, password) => {
+    if (fullName === '' || lastNameOne === '' || lastNameTwo === '' || email === '' || login === '' || password === '') {
         return false;
     }
     return true;
@@ -28,8 +28,9 @@ const validateForm = () => {
     const lastNameOne = document.getElementById('last-name-one').value;
     const lastNameTwo = document.getElementById('last-name-two').value;
     const email = document.getElementById('email').value;
+    const login = document.getElementById('login').value;
     const password = document.getElementById('password').value;
-    const isValidFields = validateFields(fullName, lastNameOne, lastNameTwo, email, password);
+    const isValidFields = validateFields(fullName, lastNameOne, lastNameTwo, email, login, password);
 
     if (!isValidFields) {
         alert('Por favor, completa todos los campos');
@@ -52,5 +53,5 @@ const validateForm = () => {
 
 }
 
-buttonLogin.addEventListener('click', validateForm);
+buttonSend.addEventListener('click', validateForm);
 
